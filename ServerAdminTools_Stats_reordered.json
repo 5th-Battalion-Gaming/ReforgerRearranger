@@ -1,0 +1,37 @@
+[
+    {
+        "modId": "68500477282C0AFE",
+        "name": "5FC Training Core",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "5DAC39D2C3D4C8CD",
+        "name": "BetterInventory",
+        "version": "1.3.2"
+    },
+    {
+        "modId": "606B100247F5C709",
+        "name": "Bacon Loadout Editor",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "5E58A3FB8CE68CBB",
+        "name": "RHS TerraCore2",
+        "version": "0.1.35"
+    },
+    {
+        "modId": "5AB301290317994A",
+        "name": "Bacon Suppressors",
+        "version": "1.2.7"
+    },
+    {
+        "modId": "5D9ECAD071E9ECBC",
+        "name": "HmmwvVariants",
+        "version": "1.0.65"
+    },
+    {
+        "modId": "62F364B35E9B51B0",
+        "name": "Wirecutters 2",
+        "version": "1.1.12"
+    }
+]
