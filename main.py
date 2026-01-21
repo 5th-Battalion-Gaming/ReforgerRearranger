@@ -313,9 +313,8 @@ class JsonOrganizer(QDialog):
         if isinstance(data, list):
             self._original_type = "list"
             self.info_label.setText(
-                "Top-level JSON type: list (each element is one row). Drag to reorder.\n"
-                "Row display: shows only the 'name' field when present.\n"
-                "Use 'Check Workshop Versions' to update versions via modId."
+                "Drag to reorder.\n"
+                "Use 'Check Workshop Versions' to update versions."
             )
             for element in data:
                 item = QListWidgetItem(row_label(element))
