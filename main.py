@@ -120,26 +120,35 @@ def _strip_html_tags(html: str) -> str:
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
-
 def fetch_workshop_version(mod_id: str, session: requests.Session) -> Optional[str]:
     """
-    Fetches https://reforger.armaplatform.com/workshop/<modId> and extracts the displayed Version.
-    Returns version string like "1.3.2" or None if not found.
+    Extracts the MOD version from the workshop metadata panel.
+    This targets the 'Version' row specifically (not Game Version, not Version size).
     """
     url = WORKSHOP_URL_TEMPLATE.format(mod_id=mod_id)
     headers = {
-        "User-Agent": "JSON-Organizer-Tool/1.1 (+version-check)",
+        "User-Agent": "JSON-Organizer-Tool/2.0 (+version-check)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
+
     r = session.get(url, headers=headers, timeout=HTTP_TIMEOUT_SECONDS)
     r.raise_for_status()
 
     text = _strip_html_tags(r.text)
-    m = re.search(r"\bVersion\b\s+([0-9A-Za-z][0-9A-Za-z.\-_+]*)", text)
+
+    # Strategy:
+    # Match:
+    #   Version <value> Game Version
+    # i.e. the Version value that appears immediately before the Game Version label
+    m = re.search(
+        r"\bVersion\b\s+([0-9]+(?:\.[0-9]+)+)\s+\bGame\s+Version\b",
+        text
+    )
+
     if not m:
         return None
-    return m.group(1).strip()
 
+    return m.group(1)
 
 def _tokenize_version(v: str) -> Tuple:
     parts = v.strip().split(".")
