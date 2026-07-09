@@ -113,42 +113,49 @@ def load_json_flexible(file_path: str):
 
 # -------------------- Version checking logic --------------------
 
-def _strip_html_tags(html: str) -> str:
-    text = re.sub(r"<script\b[^>]*>.*?</script>", " ", html, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<style\b[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+# Matches EXACTLY this structure in the raw workshop page HTML:
+#
+#     <dt class="py-3.5 font-bold leading-none">Version</dt>
+#     <dd class="flex items-center gap-1">1.2.1</dd>
+#
+# Key points:
+#   - The <dt> inner text must be exactly "Version" (nothing else), which
+#     automatically excludes the "Game Version" and "Version size" rows,
+#     since their <dt> text is not exactly "Version".
+#   - The version number is taken ONLY from the <dd> that immediately
+#     follows that <dt>.
+#   - Attribute values are not hardcoded, so minor site CSS/class changes
+#     won't break the match; only the dt/dd structure and label matter.
+VERSION_DT_DD_RE = re.compile(
+    r"<dt\b[^>]*>\s*Version\s*</dt>\s*<dd\b[^>]*>\s*([0-9]+(?:\.[0-9]+)*)\s*</dd>",
+    re.IGNORECASE | re.DOTALL,
+)
+
 
 def fetch_workshop_version(mod_id: str, session: requests.Session) -> Optional[str]:
     """
-    Extracts the MOD version from the workshop metadata panel.
-    This targets the 'Version' row specifically (not Game Version, not Version size).
+    Extracts the MOD version from the workshop page.
+
+    Looks ONLY for the metadata row whose <dt> label is exactly 'Version'
+    and returns the number inside the <dd> immediately following it.
+    'Game Version' and 'Version size' rows are never matched because their
+    <dt> text is not exactly 'Version'.
     """
     url = WORKSHOP_URL_TEMPLATE.format(mod_id=mod_id)
     headers = {
-        "User-Agent": "JSON-Organizer-Tool/2.0 (+version-check)",
+        "User-Agent": "JSON-Organizer-Tool/2.1 (+version-check)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
 
     r = session.get(url, headers=headers, timeout=HTTP_TIMEOUT_SECONDS)
     r.raise_for_status()
 
-    text = _strip_html_tags(r.text)
-
-    # Strategy:
-    # Match:
-    #   Version <value> Game Version
-    # i.e. the Version value that appears immediately before the Game Version label
-    m = re.search(
-        r"\bVersion\b\s+([0-9]+(?:\.[0-9]+)+)\s+\bGame\s+Version\b",
-        text
-    )
-
+    m = VERSION_DT_DD_RE.search(r.text)
     if not m:
         return None
 
     return m.group(1)
+
 
 def _tokenize_version(v: str) -> Tuple:
     parts = v.strip().split(".")
@@ -218,7 +225,9 @@ class VersionWorker(QObject):
 
                     remote_v = fetch_workshop_version(mod_id, session)
                     if not remote_v:
-                        raise ValueError("Could not find 'Version' on the workshop page.")
+                        raise ValueError(
+                            "Could not find the <dt>Version</dt>/<dd> row on the workshop page."
+                        )
 
                     updated = is_version_lower(old_v, remote_v)
 
