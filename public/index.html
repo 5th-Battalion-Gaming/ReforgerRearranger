@@ -796,8 +796,8 @@ function renderList() {
     const fetchBtn = document.createElement("button");
     fetchBtn.className = "btn-mini";
     fetchBtn.textContent = "⟳";
-    fetchBtn.title = "Fetch version history from the Workshop changelog";
-    fetchBtn.addEventListener("click", () => fetchVersionsFor(m, row));
+    fetchBtn.title = "Fetch fresh version history from the Workshop (bypasses all caches)";
+    fetchBtn.addEventListener("click", () => fetchVersionsFor(m, row, true));
     vw.appendChild(fetchBtn);
 
     const chip = document.createElement("span");
@@ -986,21 +986,32 @@ const RELAYS = [
 ];
 let preferredRelay = -1; // remember whichever worked, use it first next time
 
-async function fetchWithTimeout(url, ms) {
+async function fetchWithTimeout(url, ms, fresh) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), ms);
-  try { return await fetch(url, { redirect: "follow", signal: ctl.signal }); }
+  try {
+    return await fetch(url, {
+      redirect: "follow",
+      signal: ctl.signal,
+      cache: fresh ? "no-store" : "default"
+    });
+  }
   finally { clearTimeout(timer); }
 }
 
-async function fetchHtml(url) {
+async function fetchHtml(url, fresh) {
+  if (fresh) {
+    // Changing the target URL defeats the edge cache and any relay-side
+    // cache (both key on URL); no-store below defeats the browser cache.
+    url += (url.includes("?") ? "&" : "?") + "fresh=" + Date.now();
+  }
   const order = preferredRelay >= 0
     ? [RELAYS[preferredRelay], ...RELAYS.filter((_, i) => i !== preferredRelay)]
     : RELAYS.slice();
   let lastErr = null;
   for (const relay of order) {
     try {
-      const res = await fetchWithTimeout(relay.make(url), 12000);
+      const res = await fetchWithTimeout(relay.make(url), 12000, fresh);
       if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
       const html = relay.unwrap(await res.text());
       if (html.includes("__NEXT_DATA__")) {
@@ -1027,12 +1038,12 @@ function extractNextData(html) {
   return JSON.parse(m[1]);
 }
 
-async function fetchAllVersions(id) {
+async function fetchAllVersions(id, fresh) {
   const list = [];
   let count = Infinity;
   for (let page = 1; page <= MAX_PAGES && (page - 1) * PER_PAGE < count; page++) {
     const url = `${WORKSHOP}${encodeURIComponent(id)}/changelog${page > 1 ? "?page=" + page : ""}`;
-    const html = await fetchHtml(url);
+    const html = await fetchHtml(url, fresh);
     const data = extractNextData(html);
     const cl = data?.props?.pageProps?.changelogs;
     if (!cl || !Array.isArray(cl.rows)) throw new Error("Unexpected page structure");
@@ -1045,7 +1056,7 @@ async function fetchAllVersions(id) {
   return { list, latest: list.length ? list[0].version : null, count };
 }
 
-async function fetchVersionsFor(m, row) {
+async function fetchVersionsFor(m, row, fresh = false) {
   const id = modId(m);
   if (!id) { log(`Skipped a mod with no modId ("${modName(m)}")`, "err"); return; }
   const chip = row?.querySelector(".chip");
@@ -1053,9 +1064,9 @@ async function fetchVersionsFor(m, row) {
   if (chip) { chip.classList.remove("ok","behind","unlisted"); chip.classList.add("busy"); chip.textContent = "…"; }
   if (btn) btn.disabled = true;
   try {
-    const info = await fetchAllVersions(id);
+    const info = await fetchAllVersions(id, fresh);
     S.versions.set(id, info);
-    log(`${modName(m)}: ${info.list.length} versions, latest ${info.latest}`, "ok");
+    log(`${modName(m)}: ${info.list.length} versions, latest ${info.latest}${fresh ? " (fresh, caches bypassed)" : ""}`, "ok");
     if (row) {
       const sel = row.querySelector("select");
       populateVersionSelect(sel, m);
