@@ -843,7 +843,11 @@ function populateVersionSelect(sel, m) {
     for (const v of info.list) {
       const opt = document.createElement("option");
       opt.value = v.version;
-      const date = v.createdAt ? new Date(v.createdAt).toISOString().slice(0, 10) : "";
+      let date = "";
+      if (v.createdAt) {
+        const d = new Date(v.createdAt);
+        if (!isNaN(d)) date = d.toISOString().slice(0, 10);
+      }
       opt.textContent = `${v.version}  ·  GV ${v.gameVersion || "?"}${date ? "  ·  " + date : ""}`;
       if (v.version === cur) { opt.selected = true; curListed = true; }
       sel.appendChild(opt);
@@ -1027,7 +1031,7 @@ async function fetchAllVersions(id) {
   const list = [];
   let count = Infinity;
   for (let page = 1; page <= MAX_PAGES && (page - 1) * PER_PAGE < count; page++) {
-    const url = `${WORKSHOP}${id}/changelog${page > 1 ? "?page=" + page : ""}`;
+    const url = `${WORKSHOP}${encodeURIComponent(id)}/changelog${page > 1 ? "?page=" + page : ""}`;
     const html = await fetchHtml(url);
     const data = extractNextData(html);
     const cl = data?.props?.pageProps?.changelogs;
