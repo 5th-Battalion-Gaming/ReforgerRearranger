@@ -1,0 +1,18 @@
+// Cloudflare Workers config — deploys BOTH pieces as one unit:
+//   - static app served from ./public (index.html)
+//   - the CORS relay worker handling every path with no matching file,
+//     e.g. /relay?url=...
+//
+// Repo layout this expects:
+//   wrangler.jsonc
+//   reforger_relay_worker.js
+//   public/
+//     index.html        <- reforger_loadorder.html, renamed
+{
+  "name": "reforger-loadorder",
+  "main": "reforger_relay_worker.js",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./public"
+  }
+}

@@ -922,15 +922,15 @@ const PER_PAGE = 30;
 const MAX_PAGES = 20;
 
 /* ============================================================
- *  ONE-TIME SETUP (see DEPLOY.md, ~5 minutes, $0):
- *  Deploy reforger_relay_worker.js to Cloudflare's free tier,
- *  then paste your worker URL below. Example:
- *
- *    const CUSTOM_RELAY = "https://reforger-relay.yourname.workers.dev/?url=";
- *
- *  With it set, every version lookup goes through YOUR relay first
- *  (fast, cached, reliable). The public relays below remain as
- *  automatic fallback only. Leave it "" to run on public relays.
+ *  RELAY SETUP (see DEPLOY.md):
+ *  - RECOMMENDED: deploy this app + reforger_relay_worker.js as one
+ *    Cloudflare Worker (repo with wrangler.jsonc). The app finds the
+ *    relay automatically at /relay — nothing to edit here.
+ *  - ALTERNATIVE: if the relay worker is deployed separately, paste
+ *    its URL below, e.g.
+ *      const CUSTOM_RELAY = "https://reforger-relay.yourname.workers.dev/?url=";
+ *  - Left as-is, the app runs on the public relays below (fallback
+ *    quality: they come and go).
  * ============================================================ */
 const CUSTOM_RELAY = "";
 
@@ -940,6 +940,13 @@ const FROM_LOCAL_FILE = location.protocol === "file:";
 const RELAYS = [
   ...(CUSTOM_RELAY ? [{
     make: u => CUSTOM_RELAY + encodeURIComponent(u),
+    unwrap: t => t
+  }] : []),
+  // Same-origin relay: exists automatically when the app is deployed as
+  // one unit with the bundled worker (see DEPLOY.md). When the app is
+  // hosted elsewhere this candidate fails instantly and is skipped.
+  ...(!FROM_LOCAL_FILE ? [{
+    make: u => "/relay?url=" + encodeURIComponent(u),
     unwrap: t => t
   }] : []),
   { // allorigins JSON envelope — the steadiest public relay in testing
