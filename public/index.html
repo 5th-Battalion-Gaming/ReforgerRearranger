@@ -199,7 +199,8 @@
     color: var(--ink-dim); min-width: 64px; text-align: center; user-select: none;
   }
   .chip.ok    { color: var(--ok);   border-color: var(--ok); }
-  .chip.behind{ color: var(--warn); border-color: var(--warn); }
+  .chip.behind{ color: var(--warn); border-color: var(--warn); cursor: pointer; }
+  .chip.behind:hover { background: rgba(224,164,88,.15); }
   .chip.unlisted { color: var(--bad); border-color: var(--bad); }
   .chip.busy  { color: var(--focus); border-color: var(--focus); }
   .updown { display: flex; flex-direction: column; gap: 2px; }
@@ -287,6 +288,7 @@
   <h1>Reforger Load Order <small>// mod manifest &amp; version manager</small></h1>
   <div class="hdr-controls">
     <button id="btnFetchAll">Fetch all versions</button>
+    <button id="btnAllLatest" title="Update every fetched mod to its latest Workshop version">Set all to latest</button>
   </div>
 </header>
 
@@ -802,6 +804,15 @@ function renderList() {
     chip.className = "chip";
     chip.textContent = "—";
     updateChip(chip, m);
+    chip.addEventListener("click", () => {
+      const info = S.versions.get(modId(m));
+      if (!info || !info.latest || !chip.classList.contains("behind")) return;
+      m.version = info.latest;
+      populateVersionSelect(sel, m);
+      updateChip(chip, m);
+      syncToBox();
+      log(`${modName(m)} → ${info.latest}`, "ok");
+    });
     vw.appendChild(chip);
     row.appendChild(vw);
 
@@ -860,7 +871,10 @@ function updateChip(chip, m) {
   const cur = m.version ?? "";
   const listed = info.list.some(v => v.version === cur);
   if (cur === info.latest) { chip.textContent = "current"; chip.classList.add("ok"); chip.title = "Pinned to the latest Workshop version"; }
-  else if (listed) { chip.textContent = "behind"; chip.classList.add("behind"); chip.title = `Latest on Workshop is ${info.latest}`; }
+  else if (listed) {
+    chip.textContent = "behind"; chip.classList.add("behind");
+    chip.title = `Latest on Workshop is ${info.latest} — click to update`;
+  }
   else { chip.textContent = "unlisted"; chip.classList.add("unlisted"); chip.title = `This version isn't in the Workshop changelog. Latest is ${info.latest}.`; }
 }
 
@@ -1079,6 +1093,21 @@ async function fetchAll() {
    Toolbar actions
    ============================================================ */
 $("btnFetchAll").addEventListener("click", fetchAll);
+$("btnAllLatest").addEventListener("click", () => {
+  if (!S.mods || !S.mods.length) { log("Paste a config with a mods array first.", "err"); return; }
+  let updated = 0, already = 0, unfetched = 0;
+  for (const m of S.mods) {
+    const info = S.versions.get(modId(m));
+    if (!info || !info.latest) { unfetched++; continue; }
+    if (m.version === info.latest) { already++; continue; }
+    m.version = info.latest;
+    updated++;
+  }
+  if (updated) { renderList(); syncToBox(); }
+  const parts = [`${updated} updated`, `${already} already current`];
+  if (unfetched) parts.push(`${unfetched} skipped (no version data — use Fetch all versions first)`);
+  log("Set all to latest: " + parts.join(", ") + ".", unfetched && !updated ? "err" : "ok");
+});
 $("btnSortName").addEventListener("click", () => {
   if (!S.mods) return;
   S.mods.sort((a, b) => modName(a).localeCompare(modName(b), undefined, { sensitivity: "base" }));
