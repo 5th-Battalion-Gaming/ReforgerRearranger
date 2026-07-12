@@ -9,7 +9,7 @@
 //   public/
 //     index.html        <- reforger_loadorder.html, renamed
 {
-  "name": "reforger-loadorder",
+  "name": "reforger-rearranger",
   "main": "reforger_relay_worker.js",
   "compatibility_date": "2026-07-01",
   "assets": {
