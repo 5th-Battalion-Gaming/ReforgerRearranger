@@ -1,0 +1,20 @@
+{
+    "registered_systems": 6,
+    "registered_vehicles": 66,
+    "registered_groups": 60,
+    "fps": 92,
+    "uptime_seconds": 7706,
+    "updated": 1762021094,
+    "ai_characters": 45,
+    "registered_tasks": 5,
+    "registered_entities": 340,
+    "players": 1,
+    "connected_players": {
+        "c3f3748e-a02b-4474-8e91-fea2a14c30a8": "Gerry_Mander"
+    },
+    "events": {
+        "serveradmintools_game_ended": 1,
+        "serveradmintools_player_joined": 1,
+        "serveradmintools_game_started": 1
+    }
+}

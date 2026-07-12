@@ -1,0 +1,477 @@
+[
+    {
+        "modId": "65EA8C9C25882838",
+        "name": "Zarichne 2025",
+        "version": "1.0.4"
+    },
+    {
+        "modId": "648D682E7038491E",
+        "name": "ADSSway - Core",
+        "version": "0.3.39"
+    },
+    {
+        "modId": "6608FD6F58F3B90A",
+        "name": "ADSSway - PIP DOF - TEST",
+        "version": "1.0.8"
+    },
+    {
+        "modId": "656B3A0955474CB7",
+        "name": "ADSSway - RHS",
+        "version": "1.0.8"
+    },
+    {
+        "modId": "65735C5643CCC0A6",
+        "name": "ADSSway - Conf - LOW",
+        "version": "1.0.5"
+    },
+    {
+        "modId": "60C4CE4888FF4621",
+        "name": "ACE Core",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "60C53A9372ED3964",
+        "name": "ACE Compass",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "646D52AF8BB3FF15",
+        "name": "ACE Captives",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "5DBD560C5148E1DA",
+        "name": "ACE Carrying",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "60E573C9B04CC408",
+        "name": "ACE Backblast",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "61B7763A8AEB53B7",
+        "name": "ACE Explosives",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "60EAEA0389DB3CC2",
+        "name": "ACE Trenches",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "61226BB18D360BDD",
+        "name": "ACE Tactical Ladder",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "5EB744C5F42E0800",
+        "name": "ACE Chopping",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "606C369BAC3F6CC3",
+        "name": "ACE Finger",
+        "version": "1.4.2"
+    },
+    {
+        "modId": "611CB1D409001EB0",
+        "name": "ACE Magazine Repack",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "60C4C12DAE90727B",
+        "name": "ACE Medical Core",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "65860252A17554C7",
+        "name": "ACE Medical Hitzones",
+        "version": "1.4.1"
+    },
+    {
+        "modId": "66E2B266740BA589",
+        "name": "AceMedPainFX - Chrom Ab.",
+        "version": "1.0.0"
+    },
+    {
+        "modId": "1337C0DE5DABBEEF",
+        "name": "RHS - Content Pack 01",
+        "version": "0.14.4776"
+    },
+    {
+        "modId": "BADC0DEDABBEDA5E",
+        "name": "RHS - Content Pack 02",
+        "version": "0.14.4776"
+    },
+    {
+        "modId": "595F2BF2F44836FB",
+        "name": "RHS - Status Quo",
+        "version": "0.14.4776"
+    },
+    {
+        "modId": "66F4B3456A31C2A1",
+        "name": "RHS Peripheral NVGs",
+        "version": "1.0.0"
+    },
+    {
+        "modId": "5AB301290317994A",
+        "name": "Bacon Suppressors",
+        "version": "1.2.7"
+    },
+    {
+        "modId": "5ABD0CB57F7E9EB1",
+        "name": "RIS Laser Attachments",
+        "version": "1.6.2"
+    },
+    {
+        "modId": "6632F94B46173164",
+        "name": "Rayzi Utils",
+        "version": "1.0.12"
+    },
+    {
+        "modId": "5AF6E0F075D79473",
+        "name": "M249 Scope Rails",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "5CA125536EE7430A",
+        "name": "M110 DMR",
+        "version": "1.0.28"
+    },
+    {
+        "modId": "65731A29EFECF878",
+        "name": "ADSSway - M110 DMR",
+        "version": "1.0.4"
+    },
+    {
+        "modId": "5D915A9DC6EB0856",
+        "name": "Benelli M4",
+        "version": "1.0.31"
+    },
+    {
+        "modId": "613B4DD4A91CA144",
+        "name": "LM Suppression",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "631CEEA50832343D",
+        "name": "Realism Overhaul - GC",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "64ACA773840FA0EA",
+        "name": "Realism Overhaul - Backblast",
+        "version": "1.6.2"
+    },
+    {
+        "modId": "652CB1DC88A2245B",
+        "name": "Realism Overhaul - GM",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "631D61C22E30D845",
+        "name": "Realism Overhaul - Effects",
+        "version": "1.6.3"
+    },
+    {
+        "modId": "646139033F5805AD",
+        "name": "Realism Overhaul - Ballistics",
+        "version": "1.6.4"
+    },
+    {
+        "modId": "653942F38B7C23DE",
+        "name": "Realism Overhaul - Map",
+        "version": "1.6.2"
+    },
+    {
+        "modId": "631CA3F82A68518D",
+        "name": "Realism Overhaul - MP Fixes",
+        "version": "1.6.2"
+    },
+    {
+        "modId": "631B695913C7781F",
+        "name": "Realism Overhaul - Sounds",
+        "version": "1.6.7"
+    },
+    {
+        "modId": "5E389BB9F58B79A6",
+        "name": "SpaceCore",
+        "version": "1.3.20"
+    },
+    {
+        "modId": "62CCD69DD17E4F2F",
+        "name": "AKI_Core",
+        "version": "6.0.4"
+    },
+    {
+        "modId": "64EE818E08AFCF94",
+        "name": "MFD Framework",
+        "version": "0.4.2"
+    },
+    {
+        "modId": "629B2BA37EFFD577",
+        "name": "WCS_Armaments",
+        "version": "6.0.20"
+    },
+    {
+        "modId": "6602C1EC7E5A4A87",
+        "name": "WCS_Clothing_Assets",
+        "version": "6.0.3"
+    },
+    {
+        "modId": "6152CB0BD0684837",
+        "name": "WCS_Clothing",
+        "version": "6.0.11"
+    },
+    {
+        "modId": "6273146ADFE8241D",
+        "name": "WCS_AH-6M",
+        "version": "6.0.15"
+    },
+    {
+        "modId": "61E42AE6714A3CC2",
+        "name": "WCS_Armbands",
+        "version": "6.0.0"
+    },
+    {
+        "modId": "612F512CD4CB21D5",
+        "name": "WCS_Earplugs",
+        "version": "6.0.2"
+    },
+    {
+        "modId": "670E8DD9DA6ADF59",
+        "name": "Fix_RealismSounds_WCS-Earplugs",
+        "version": "0.0.1"
+    },
+    {
+        "modId": "606B100247F5C709",
+        "name": "Bacon Loadout Editor",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "60B8969E0FA439C1",
+        "name": "BMP-1AM",
+        "version": "1.1.11"
+    },
+    {
+        "modId": "5B383D4CB27E0D54",
+        "name": "BMP-3 IFV",
+        "version": "1.1.8"
+    },
+    {
+        "modId": "5E524E4FEECCA92B",
+        "name": "BMP-1 IFV",
+        "version": "1.1.5"
+    },
+    {
+        "modId": "66947A13751EC3FF",
+        "name": "btr82a",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "5DAC39D2C3D4C8CD",
+        "name": "BetterInventory",
+        "version": "1.3.2"
+    },
+    {
+        "modId": "5964E0B3BB7410CE",
+        "name": "Game Master Enhanced",
+        "version": "1.3.5"
+    },
+    {
+        "modId": "60E2D7E5A20FABEB",
+        "name": "Keep Abandoned Vehicles",
+        "version": "1.1.2"
+    },
+    {
+        "modId": "5ED8BE1DDFEFBE4C",
+        "name": "Admin Messages",
+        "version": "1.0.14"
+    },
+    {
+        "modId": "660CB7CC69106D7D",
+        "name": "Labelled Crew Weaponry",
+        "version": "1.0.0"
+    },
+    {
+        "modId": "628B48364AFD286C",
+        "name": "GM Editable Intel",
+        "version": "1.0.4"
+    },
+    {
+        "modId": "65A87C219A1E8C6F",
+        "name": "ArmaVision Enhanced",
+        "version": "1.0.4"
+    },
+    {
+        "modId": "66DF6C37335B0554",
+        "name": "AHC Fuel Systems",
+        "version": "0.1.4"
+    },
+    {
+        "modId": "61957C5C6FB7A773",
+        "name": "H-47 Chinook",
+        "version": "0.7.8"
+    },
+    {
+        "modId": "5F02F9A85FC5D93B",
+        "name": "NoKillFeed",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "656AC01634459D8D",
+        "name": "Map Drawing",
+        "version": "1.1.0"
+    },
+    {
+        "modId": "65EE3018973765CE",
+        "name": "Flags of the World",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "65D050C86106E5BC",
+        "name": "Smokeable Smokes",
+        "version": "0.2.13"
+    },
+    {
+        "modId": "62D15D0025AE021B",
+        "name": "ZSU-23-4 Shilka",
+        "version": "1.1.6"
+    },
+    {
+        "modId": "5D0551624969C92E",
+        "name": "Zeliks Character",
+        "version": "1.1.20"
+    },
+    {
+        "modId": "625113D08F47AB6C",
+        "name": "Comrade Bears STALKER Clothing",
+        "version": "1.0.7"
+    },
+    {
+        "modId": "64F10E068D5880A6",
+        "name": "GM Tools",
+        "version": "2.1.17"
+    },
+    {
+        "modId": "5F2944B7474F043F",
+        "name": "Disable Game Master Budgets",
+        "version": "1.0.5"
+    },
+    {
+        "modId": "66AF528169E54227",
+        "name": "No More Talky",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "622B1027A8796320",
+        "name": "GMFX artillery expansion",
+        "version": "1.0.3"
+    },
+    {
+        "modId": "5B02128D896F7DE8",
+        "name": "STRYKER",
+        "version": "1.3.7"
+    },
+    {
+        "modId": "5C721177A220B42F",
+        "name": "Joint Light Tactical Vehicle",
+        "version": "1.3.11"
+    },
+    {
+        "modId": "684608DD7C7E0DFB",
+        "name": "Aiming Deadzone",
+        "version": "1.0.16"
+    },
+    {
+        "modId": "6525063B2176A353",
+        "name": "UAB Move Terrain Objects",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "650D596AEF722CAB",
+        "name": "Encounter House Overrides",
+        "version": "0.9.11"
+    },
+    {
+        "modId": "64ED6553B8AF6B62",
+        "name": "Atmospheric Weather Mod",
+        "version": "1.0.28"
+    },
+    {
+        "modId": "5994AD5A9F33BE57",
+        "name": "Game Master FX",
+        "version": "1.6.0"
+    },
+    {
+        "modId": "6262FCE5C8B463DF",
+        "name": "Unlimited_Map_Markers",
+        "version": "1.0.12"
+    },
+    {
+        "modId": "666947D8218E3B3F",
+        "name": "GM Trenches",
+        "version": "1.0.0"
+    },
+    {
+        "modId": "6088A3044B7ECBFD",
+        "name": "Keep Gun When Uncon",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "61C8AD57503CA770",
+        "name": "No SL Markers",
+        "version": "1.0.0"
+    },
+    {
+        "modId": "5C9758250C8C56F1",
+        "name": "Bon Action Animations",
+        "version": "1.0.1"
+    },
+    {
+        "modId": "63120AE07E6C0966",
+        "name": "M2 Bradley Fighting Vehicle",
+        "version": "1.1.12"
+    },
+    {
+        "modId": "5F0CA2820542039B",
+        "name": "SESOF Compass",
+        "version": "1.0.24"
+    },
+    {
+        "modId": "62F364B35E9B51B0",
+        "name": "Wirecutters 2",
+        "version": "1.1.12"
+    },
+    {
+        "modId": "64AB5D83872CCF87",
+        "name": "Realism Overhaul - Weather",
+        "version": "1.6.1"
+    },
+    {
+        "modId": "5EF5347644A2C501",
+        "name": "Bacon Weather",
+        "version": "1.2.1"
+    },
+    {
+        "modId": "59EAA899751805DF",
+        "name": "Stun Grenade",
+        "version": "1.3.0"
+    },
+    {
+        "modId": "5F268647F8A1A1F4",
+        "name": "CRX Enfusion A.I.",
+        "version": "1.3.33"
+    },
+    {
+        "modId": "66E72355DACE6FF8",
+        "name": "OP_IronTempest_Core",
+        "version": "1.1.1"
+    },
+    {
+        "modId": "66EEE71D700B622F",
+        "name": "OP_IronTempest_Scenario",
+        "version": "1.0.0"
+    }
+]

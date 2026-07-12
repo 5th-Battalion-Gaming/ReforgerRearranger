@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ===================== SEO ===================== -->
+<title>Arma Reforger Mod Load Order &amp; Version Manager — Free Server Config JSON Tool</title>
+<meta name="description" content="Free browser-based tool for Arma Reforger dedicated server admins: drag-and-drop your mod load order, browse every Workshop version of each mod, pin or roll back versions, and edit your server config JSON with line numbers and error highlighting. No install — everything runs in your browser.">
+<meta name="keywords" content="Arma Reforger, server config, mod load order, mods array, dedicated server, Workshop mod versions, version rollback, modId, JSON editor, Reforger server admin tool">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Arma Reforger Mod Load Order & Version Manager">
+<meta property="og:description" content="Reorder your Reforger server's mod load order with drag and drop, pick any Workshop version of each mod, and keep your server config JSON in sync — all client-side.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Arma Reforger Mod Load Order & Version Manager">
+<meta name="twitter:description" content="Drag-and-drop mod load order and Workshop version picker for Reforger server configs. Runs entirely in the browser.">
+<meta name="theme-color" content="#14181d">
+<meta name="application-name" content="Reforger Load Order">
+<meta name="author" content="Reforger Load Order Tool">
+<link rel="preconnect" href="https://api.allorigins.win">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2314181d'/%3E%3Cpath d='M8 9h16M8 16h16M8 23h16' stroke='%23c8b78a' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='11' cy='9' r='2.4' fill='%23a08f5f'/%3E%3Ccircle cx='21' cy='16' r='2.4' fill='%23a08f5f'/%3E%3Ccircle cx='14' cy='23' r='2.4' fill='%23a08f5f'/%3E%3C/svg%3E">
+<!-- Once hosted, set these to the real URL for best indexing:
+<link rel="canonical" href="https://YOUR-DOMAIN/reforger-load-order">
+<meta property="og:url" content="https://YOUR-DOMAIN/reforger-load-order">
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Arma Reforger Mod Load Order & Version Manager",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "description": "Browser-based editor for Arma Reforger dedicated server configs: drag-and-drop mod load order, per-mod Workshop version history and pinning, JSON editing with line numbers, bracket-pair coloring, and error highlighting.",
+  "keywords": "Arma Reforger, server config, mod load order, Workshop versions, JSON"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I change the mod load order on my Arma Reforger dedicated server?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The load order is the order of the mods array in your server config JSON. Paste your config into this tool and drag mods into the order you want — the JSON updates automatically and can be copied or downloaded back to your server." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I pin or roll back a mod to an older Workshop version?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Set the version field for that mod in the mods array of your server config. This tool fetches the full version history of each mod from the Reforger Workshop changelog so you can pick any published version from a dropdown." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my server config uploaded anywhere?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Everything runs client-side in your browser. The only network requests are read-only fetches of public Workshop changelog pages when you ask for version histories." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my server config fail to parse?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The most common cause is a trailing comma after the last item in an object or array. This tool tolerates trailing commas, highlights the exact line of any other JSON error, and can reformat the file into strictly valid JSON." }
+    }
+  ]
+}
+</script>
+<!-- =================== end SEO =================== -->
+
+<style>
+  :root {
+    --bg: #14181d;
+    --panel: #1c2229;
+    --panel-2: #232b34;
+    --line: #303a45;
+    --ink: #d7dde3;
+    --ink-dim: #8b98a5;
+    --khaki: #c8b78a;
+    --khaki-deep: #a08f5f;
+    --ok: #7fb069;
+    --warn: #e0a458;
+    --bad: #d1666a;
+    --focus: #7aa5c4;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --sans: "Saira Semi Condensed", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* bracket depth palette */
+    --b0: #d9b45f; --b1: #6fc2b4; --b2: #b58fd6;
+    --b3: #7aa5c4; --b4: #9dc26f; --b5: #e0885e;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 15px;
+    display: flex; flex-direction: column;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 10px 16px; border-bottom: 2px solid var(--khaki-deep);
+    background: linear-gradient(180deg, #1a2027, #161b21);
+  }
+  header h1 {
+    margin: 0; font-size: 18px; letter-spacing: 3px; text-transform: uppercase;
+    font-weight: 600; color: var(--khaki);
+  }
+  header h1 small { color: var(--ink-dim); letter-spacing: 1px; font-weight: 400; text-transform: none; }
+  .hdr-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+  button {
+    font-family: var(--sans); font-size: 13px; letter-spacing: .5px;
+    background: var(--panel-2); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 3px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--khaki-deep); color: var(--khaki); }
+  button:disabled { opacity: .45; cursor: default; }
+  button:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 1px;
+  }
+  select {
+    font-family: var(--sans); font-size: 13px;
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 3px; padding: 5px 8px;
+  }
+
+  /* ---------- main split ---------- */
+  main { flex: 1; display: flex; min-height: 0; }
+  #left {
+    flex: 1 1 55%; min-width: 0; display: flex; flex-direction: column;
+    border-right: 1px solid var(--line);
+  }
+  #right {
+    flex: 1 1 45%; min-width: 320px; display: flex; flex-direction: column;
+    background: var(--panel);
+  }
+
+  /* ---------- left: manifest ---------- */
+  .left-toolbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  .left-toolbar .spacer { flex: 1; }
+  #modCount { font-size: 12px; color: var(--ink-dim); letter-spacing: 1px; text-transform: uppercase; }
+
+  #invalidBanner {
+    display: none; padding: 10px 14px; text-align: center;
+    background: rgba(209,102,106,.12); border-bottom: 1px solid var(--bad);
+    color: var(--bad); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 13px;
+  }
+  #invalidBanner.show { display: block; }
+  #modList { flex: 1; overflow-y: auto; padding: 8px 10px 40px; transition: opacity .15s ease; }
+  #modList.stale { opacity: .35; pointer-events: none; }
+
+  .empty-note {
+    margin: 40px auto; max-width: 460px; text-align: center;
+    color: var(--ink-dim); font-size: 14px; line-height: 1.6;
+  }
+  .empty-note b { color: var(--khaki); }
+
+  .mod-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 6px 10px; margin-bottom: 6px;
+    transition: border-color .12s ease;
+  }
+  .mod-row.dragging { opacity: .4; }
+  .mod-row.drop-above { box-shadow: 0 -3px 0 0 var(--khaki); }
+  .mod-row.drop-below { box-shadow: 0 3px 0 0 var(--khaki); }
+  .mod-row:hover { border-color: var(--khaki-deep); }
+
+  .rank {
+    font-family: var(--mono); font-size: 12px; color: var(--khaki-deep);
+    min-width: 34px; text-align: right; user-select: none;
+  }
+  .grip {
+    cursor: grab; color: var(--ink-dim); font-size: 15px; user-select: none;
+    padding: 2px 4px; touch-action: none;
+  }
+  .grip:active { cursor: grabbing; }
+
+  .mod-main { flex: 1; min-width: 0; }
+  .mod-name {
+    font-weight: 600; font-size: 14px; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mod-name a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--line); }
+  .mod-name a:hover { color: var(--khaki); border-bottom-color: var(--khaki); }
+  .mod-id { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+
+  .ver-wrap { display: flex; align-items: center; gap: 6px; }
+  .ver-wrap select { font-family: var(--mono); font-size: 12px; max-width: 210px; }
+  .btn-mini { padding: 4px 8px; font-size: 12px; }
+  .chip {
+    font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line);
+    color: var(--ink-dim); min-width: 64px; text-align: center; user-select: none;
+  }
+  .chip.ok    { color: var(--ok);   border-color: var(--ok); }
+  .chip.behind{ color: var(--warn); border-color: var(--warn); }
+  .chip.unlisted { color: var(--bad); border-color: var(--bad); }
+  .chip.busy  { color: var(--focus); border-color: var(--focus); }
+  .updown { display: flex; flex-direction: column; gap: 2px; }
+  .updown button { padding: 0 6px; font-size: 10px; line-height: 16px; }
+
+  /* ---------- right: JSON editor (overlay technique) ---------- */
+  .right-toolbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 8px 12px; border-bottom: 1px solid var(--line);
+  }
+  #editor {
+    flex: 1; display: flex; min-height: 0; background: #12161b;
+    position: relative;
+  }
+  #gutter {
+    width: 52px; overflow: hidden; user-select: none; flex: none;
+    background: #10141a; border-right: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+    color: #4d5a68; text-align: right; padding: 12px 8px 12px 0;
+  }
+  #gutter .gn { display: block; }
+  #gutter .gn.err { color: var(--bad); font-weight: 700; }
+  #editArea { position: relative; flex: 1; min-width: 0; }
+  #highlight, #jsonBox {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+    tab-size: 2; letter-spacing: 0; white-space: pre; overflow-wrap: normal;
+    padding: 12px 14px; margin: 0; border: 0;
+  }
+  #highlight {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    color: var(--ink);
+  }
+  #highlight .lnrow { display: block; width: max-content; min-width: 100%; }
+  #highlight .lnrow:empty::before { content: "\200B"; }
+  #highlight .lnrow.err-line { background: rgba(209,102,106,.16); box-shadow: inset 3px 0 0 var(--bad); }
+  #jsonBox {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: transparent; color: transparent; caret-color: var(--khaki);
+    resize: none; overflow: auto;
+  }
+  #jsonBox::placeholder { color: #55636f; }
+  #jsonBox::selection { background: rgba(122,165,196,.30); }
+
+  /* token colors */
+  .tok-key  { color: #9ecbe8; }
+  .tok-str  { color: #c9b98a; }
+  .tok-num  { color: #9dc26f; }
+  .tok-bool { color: #b58fd6; }
+  .tok-warn { color: var(--bad); background: rgba(209,102,106,.25); border-radius: 2px; }
+  .br.b0 { color: var(--b0); } .br.b1 { color: var(--b1); } .br.b2 { color: var(--b2); }
+  .br.b3 { color: var(--b3); } .br.b4 { color: var(--b4); } .br.b5 { color: var(--b5); }
+  .br.berr { color: #fff; background: var(--bad); border-radius: 2px; }
+
+  #jsonStatus {
+    font-family: var(--mono); font-size: 12px; padding: 6px 12px;
+    border-top: 1px solid var(--line); min-height: 30px;
+  }
+  #jsonStatus.ok { color: var(--ok); }
+  #jsonStatus.err { color: var(--bad); }
+  #jsonStatus.warn { color: var(--warn); }
+
+  /* ---------- log strip ---------- */
+  #log {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim);
+    border-top: 1px solid var(--line); background: #10141a;
+    padding: 4px 12px; max-height: 84px; overflow-y: auto; white-space: pre-wrap;
+  }
+  #log .err { color: var(--bad); }
+  #log .ok { color: var(--ok); }
+
+  @media (max-width: 900px) {
+    main { flex-direction: column; overflow-y: auto; }
+    #left { border-right: 0; border-bottom: 1px solid var(--line); }
+    #modList { max-height: 50vh; }
+    #right { min-height: 380px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reforger Load Order <small>// mod manifest &amp; version manager</small></h1>
+  <div class="hdr-controls">
+    <button id="btnFetchAll">Fetch all versions</button>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: rearranging + version selection -->
+  <section id="left" aria-label="Mod load order">
+    <div class="left-toolbar">
+      <span id="modCount">No mods loaded</span>
+      <span class="spacer"></span>
+      <button id="btnSortName" class="btn-mini" title="Sort mods A→Z by name">Sort A–Z</button>
+      <button id="btnReverse" class="btn-mini" title="Reverse the current order">Reverse</button>
+    </div>
+    <div id="invalidBanner" role="alert">Invalid JSON format</div>
+    <div id="modList">
+      <div class="empty-note">
+        Paste your <b>Arma Reforger server config</b> — or just the <b>mods array</b> —
+        into the editor on the right. The list updates automatically as you type.<br><br>
+        Drag rows to reorder the load order. Use a row's <b>⟳</b> to pull that mod's full
+        version history from the Workshop, then pick any version from its dropdown.
+        Every change is written straight back into the JSON.
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: the JSON editor -->
+  <section id="right" aria-label="Server config JSON editor">
+    <div class="right-toolbar">
+      <button id="btnFormat" title="Rewrite the JSON with clean 2-space indentation">Format</button>
+      <button id="btnCopy">Copy</button>
+      <button id="btnDownload">Download</button>
+    </div>
+    <div id="editor">
+      <div id="gutter" aria-hidden="true"><span class="gn">1</span></div>
+      <div id="editArea">
+        <pre id="highlight" aria-hidden="true"></pre>
+        <textarea id="jsonBox" spellcheck="false" wrap="off" aria-label="Server config JSON" placeholder='Paste server config JSON here, e.g.
+
+{
+  "game": {
+    "mods": [
+      { "modId": "1234567890ABCDEF", "name": "Example Mod", "version": "1.0.0" },
+      { "modId": "FEDCBA0987654321", "name": "Another Mod", "version": "2.3.1" }
+    ]
+  }
+}'></textarea>
+      </div>
+    </div>
+    <div id="jsonStatus">Waiting for JSON.</div>
+  </section>
+</main>
+
+<div id="log" aria-live="polite"></div>
+
+<footer id="about">
+  <details>
+    <summary>About this tool — Arma Reforger mod load order &amp; Workshop version manager</summary>
+    <div class="about-body">
+      <h2>What it does</h2>
+      <p>A free, browser-based editor for Arma Reforger dedicated server configs. Paste your
+      server config JSON (or just the <code>mods</code> array) and drag mods to change the
+      load order, fetch each mod's complete version history from the Reforger Workshop, and
+      pin or roll back any mod to any published version. The JSON stays in sync as you work,
+      with line numbers, bracket-pair coloring, and precise error highlighting.</p>
+      <h2>Frequently asked</h2>
+      <p><b>How do I change the mod load order on my Reforger server?</b> The load order is
+      simply the order of the <code>mods</code> array in your server config. Drag rows here,
+      then copy or download the updated JSON back to your server.</p>
+      <p><b>How do I roll a mod back to an older version?</b> Set that mod's
+      <code>version</code> field. This tool lists every published Workshop version of each
+      mod so you can pick one from a dropdown instead of hunting through changelog pages.</p>
+      <p><b>Is my config uploaded anywhere?</b> No — everything runs client-side. The only
+      network traffic is read-only fetches of public Workshop changelog pages.</p>
+      <p><b>Why won't my config parse?</b> Usually a trailing comma after the last item in a
+      block. Trailing commas are tolerated here and flagged in red; any other JSON error is
+      highlighted on its exact line, and Format rewrites the file as strictly valid JSON.</p>
+    </div>
+  </details>
+</footer>
+<style>
+  #about { border-top: 1px solid var(--line); background: #10141a; font-size: 13px; }
+  #about summary {
+    cursor: pointer; padding: 6px 14px; color: var(--ink-dim); list-style: none;
+  }
+  #about summary::before { content: "▸ "; color: var(--khaki-deep); }
+  #about details[open] summary::before { content: "▾ "; }
+  #about summary:hover { color: var(--khaki); }
+  .about-body { padding: 4px 18px 14px; max-width: 860px; color: var(--ink-dim); line-height: 1.6; }
+  .about-body h2 { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--khaki-deep); margin: 12px 0 4px; }
+  .about-body p { margin: 6px 0; }
+  .about-body b { color: var(--ink); }
+  .about-body code { font-family: var(--mono); font-size: 12px; color: var(--khaki); }
+</style>
+
+<script>
+"use strict";
+
+/* ============================================================
+   State
+   ============================================================ */
+const S = {
+  doc: null,          // full parsed document (object or array)
+  mods: null,         // reference to the mods array *inside* doc
+  modsPath: "",       // human-readable path to the array
+  versions: new Map() // modId -> { list: [{version, gameVersion, createdAt}], latest }
+};
+
+const $ = id => document.getElementById(id);
+const modListEl = $("modList");
+const jsonBox = $("jsonBox");
+const highlightEl = $("highlight");
+const gutterEl = $("gutter");
+
+/* ============================================================
+   Logging / status
+   ============================================================ */
+function log(msg, cls) {
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  const el = $("log");
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  while (el.childNodes.length > 200) el.removeChild(el.firstChild);
+}
+function setJsonStatus(msg, cls) {
+  const el = $("jsonStatus");
+  el.textContent = msg;
+  el.className = cls || "";
+}
+function showInvalid(on) {
+  $("invalidBanner").classList.toggle("show", on);
+  modListEl.classList.toggle("stale", on && S.mods !== null);
+}
+
+/* ============================================================
+   JSON editor: line numbers + syntax/bracket highlighting
+   (transparent textarea layered over a rendered <pre>)
+   ============================================================ */
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderHighlight(text, errLine) {
+  const out = [];
+  let depth = 0, line = 1, i = 0;
+  const n = text.length;
+  const openLine = l => `<span class="lnrow${l === errLine ? " err-line" : ""}">`;
+  let buf = openLine(line);
+
+  while (i < n) {
+    const c = text[i];
+
+    if (c === "\n") { out.push(buf + "</span>"); line++; buf = openLine(line); i++; continue; }
+
+    if (c === '"') {
+      // scan the string; stop at unescaped quote or end of line
+      let j = i + 1;
+      while (j < n && text[j] !== '"' && text[j] !== "\n") {
+        if (text[j] === "\\") j++;
+        j++;
+      }
+      const closed = text[j] === '"';
+      const raw = text.slice(i, closed ? j + 1 : j);
+      // key if the next non-space char is a colon
+      let k = closed ? j + 1 : j;
+      while (k < n && (text[k] === " " || text[k] === "\t")) k++;
+      const isKey = text[k] === ":";
+      buf += `<span class="tok-${isKey ? "key" : "str"}">${escapeHtml(raw)}</span>`;
+      i = closed ? j + 1 : j;
+      continue;
+    }
+
+    if (c === "{" || c === "[") {
+      buf += `<span class="br b${((depth % 6) + 6) % 6}">${c}</span>`;
+      depth++; i++; continue;
+    }
+    if (c === "}" || c === "]") {
+      depth--;
+      const cls = depth < 0 ? "br berr" : `br b${((depth % 6) + 6) % 6}`;
+      buf += `<span class="${cls}">${c}</span>`;
+      i++; continue;
+    }
+
+    if (c === ",") {
+      // trailing comma? lookahead past whitespace for a closing bracket
+      let k = i + 1;
+      while (k < n && /\s/.test(text[k])) k++;
+      const trailing = text[k] === "}" || text[k] === "]";
+      buf += trailing ? `<span class="tok-warn" title="Trailing comma">,</span>` : ",";
+      i++; continue;
+    }
+
+    if (c === "-" || (c >= "0" && c <= "9")) {
+      let j = i + 1;
+      while (j < n && /[0-9eE+\-.]/.test(text[j])) j++;
+      buf += `<span class="tok-num">${escapeHtml(text.slice(i, j))}</span>`;
+      i = j; continue;
+    }
+
+    if (c >= "a" && c <= "z") {
+      let j = i + 1;
+      while (j < n && text[j] >= "a" && text[j] <= "z") j++;
+      const w = text.slice(i, j);
+      buf += (w === "true" || w === "false" || w === "null")
+        ? `<span class="tok-bool">${w}</span>` : escapeHtml(w);
+      i = j; continue;
+    }
+
+    buf += escapeHtml(c); i++;
+  }
+  out.push(buf + "</span>");
+  return { html: out.join(""), lines: line };
+}
+
+function refreshEditorVisuals(errLine) {
+  const text = jsonBox.value;
+  const { html, lines } = renderHighlight(text, errLine || 0);
+  highlightEl.innerHTML = html;
+  // gutter
+  const frag = [];
+  for (let l = 1; l <= lines; l++) {
+    frag.push(`<span class="gn${l === errLine ? " err" : ""}">${l}</span>`);
+  }
+  gutterEl.innerHTML = `<div id="gutterInner">${frag.join("")}</div>`;
+  syncScroll();
+}
+
+function syncScroll() {
+  highlightEl.scrollTop = jsonBox.scrollTop;
+  highlightEl.scrollLeft = jsonBox.scrollLeft;
+  const gi = $("gutterInner");
+  if (gi) gi.style.transform = `translateY(${-jsonBox.scrollTop}px)`;
+}
+jsonBox.addEventListener("scroll", syncScroll);
+
+// Tab inserts two spaces instead of leaving the editor
+jsonBox.addEventListener("keydown", e => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const { selectionStart: s, selectionEnd: en } = jsonBox;
+    jsonBox.setRangeText("  ", s, en, "end");
+    onUserEdit();
+  }
+});
+
+/** Programmatic writes (from the left panel) — doesn't fire 'input'. */
+function setEditorText(text) {
+  jsonBox.value = text;
+  refreshEditorVisuals(0);
+}
+
+/* ============================================================
+   Parsing — accepts a normal JSON document, multiple top-level
+   values separated by commas, and tolerates trailing commas.
+   ============================================================ */
+function stripTrailingCommas(t) { return t.replace(/,(\s*[}\]])/g, "$1"); }
+
+function parseFlexible(text) {
+  const t = text.trim();
+  if (!t) return { doc: null, note: "empty" };
+  try { return { doc: JSON.parse(t) }; }
+  catch (e1) {
+    // 1) tolerate trailing commas (the most common hand-edit break)
+    try { return { doc: JSON.parse(stripTrailingCommas(t)), note: "trailing-commas" }; }
+    catch (_) {}
+    // 2) multiple top-level values: `{...}, {...}, {...}`
+    try { return { doc: JSON.parse("[" + stripTrailingCommas(t).replace(/,\s*$/, "") + "]"), note: "wrapped" }; }
+    catch (_) {}
+    throw e1; // report the original, most meaningful error
+  }
+}
+
+/**
+ * Locate the first real JSON error position ourselves — browser error
+ * messages are inconsistent about including one. Tolerates trailing
+ * commas (we accept those), so it points at the actual problem.
+ */
+function findJsonErrorPos(t) {
+  let i = 0; const n = t.length;
+  const ws = () => { while (i < n && /\s/.test(t[i])) i++; };
+  const fail = () => { throw i; };
+  function value() {
+    ws();
+    if (i >= n) fail();
+    const c = t[i];
+    if (c === "{") return obj();
+    if (c === "[") return arr();
+    if (c === '"') return str();
+    if (c === "-" || (c >= "0" && c <= "9")) return num();
+    if (t.startsWith("true", i))  { i += 4; return; }
+    if (t.startsWith("false", i)) { i += 5; return; }
+    if (t.startsWith("null", i))  { i += 4; return; }
+    fail();
+  }
+  function str() {
+    i++;
+    while (i < n) {
+      const c = t[i];
+      if (c === "\\") { i += 2; continue; }
+      if (c === '"') { i++; return; }
+      if (c === "\n") fail();
+      i++;
+    }
+    fail();
+  }
+  function num() {
+    const m = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/.exec(t.slice(i, i + 40));
+    if (!m || !m[0]) fail();
+    i += m[0].length;
+  }
+  function obj() {
+    i++; ws();
+    if (t[i] === "}") { i++; return; }
+    for (;;) {
+      ws();
+      if (t[i] !== '"') fail();
+      str(); ws();
+      if (t[i] !== ":") fail();
+      i++; value(); ws();
+      if (t[i] === ",") {
+        i++; ws();
+        if (t[i] === "}") { i++; return; } // tolerated trailing comma
+        continue;
+      }
+      if (t[i] === "}") { i++; return; }
+      fail();
+    }
+  }
+  function arr() {
+    i++; ws();
+    if (t[i] === "]") { i++; return; }
+    for (;;) {
+      value(); ws();
+      if (t[i] === ",") {
+        i++; ws();
+        if (t[i] === "]") { i++; return; } // tolerated trailing comma
+        continue;
+      }
+      if (t[i] === "]") { i++; return; }
+      fail();
+    }
+  }
+  try { value(); ws(); if (i < n) fail(); return -1; }
+  catch (pos) { return typeof pos === "number" ? Math.min(pos, n - 1) : i; }
+}
+
+function errorLineFrom(err, text) {
+  let pos = findJsonErrorPos(text);
+  if (pos < 0) {
+    const m = /position (\d+)/i.exec(err.message);
+    pos = m ? Math.min(+m[1], text.length) : 0;
+  }
+  const upto = text.slice(0, pos);
+  const line = (upto.match(/\n/g) || []).length + 1;
+  const col = pos - upto.lastIndexOf("\n");
+  return { line, col };
+}
+
+function looksLikeModsArray(v) {
+  return Array.isArray(v) && v.length > 0 &&
+    v.every(x => x && typeof x === "object" && ("modId" in x || "modID" in x));
+}
+
+/** Find the mods array anywhere in the document. Returns {arr, path} or null. */
+function findModsArray(doc) {
+  if (looksLikeModsArray(doc)) return { arr: doc, path: "(root array)" };
+  const queue = [{ v: doc, path: "" }];
+  while (queue.length) {
+    const { v, path } = queue.shift();
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      for (const [k, val] of Object.entries(v)) {
+        const p = path ? path + "." + k : k;
+        if (looksLikeModsArray(val)) return { arr: val, path: p };
+        if (val && typeof val === "object") queue.push({ v: val, path: p });
+      }
+    }
+  }
+  return null;
+}
+
+function modId(m)   { return m.modId ?? m.modID ?? ""; }
+function modName(m) { return m.name || modId(m) || "(unnamed)"; }
+
+/* ============================================================
+   Auto-parse on edit (debounced)
+   ============================================================ */
+let debounceTimer = null;
+function onUserEdit() {
+  clearTimeout(debounceTimer);
+  refreshEditorVisuals(0); // instant re-highlight while typing
+  debounceTimer = setTimeout(parseNow, 250);
+}
+jsonBox.addEventListener("input", onUserEdit);
+
+function parseNow() {
+  const text = jsonBox.value;
+  let parsed;
+  try { parsed = parseFlexible(text); }
+  catch (e) {
+    const { line, col } = errorLineFrom(e, text);
+    refreshEditorVisuals(line);
+    showInvalid(true);
+    setJsonStatus(`Invalid JSON — ${e.message}`, "err");
+    return;
+  }
+  showInvalid(false);
+  refreshEditorVisuals(0);
+
+  if (parsed.doc === null) {
+    S.doc = S.mods = null; S.modsPath = "";
+    setJsonStatus("Waiting for JSON.");
+    renderList();
+    return;
+  }
+  const found = findModsArray(parsed.doc);
+  if (!found) {
+    S.doc = parsed.doc; S.mods = null; S.modsPath = "";
+    setJsonStatus("Valid JSON, but no mods array found (looked for objects with a modId key).", "warn");
+    renderList();
+    return;
+  }
+  S.doc = parsed.doc;
+  S.mods = found.arr;
+  S.modsPath = found.path;
+  if (parsed.note === "trailing-commas") {
+    setJsonStatus(`Parsed ${S.mods.length} mods (trailing commas ignored — press Format to clean them up).`, "warn");
+  } else {
+    setJsonStatus(`Valid — ${S.mods.length} mods at ${found.path}.`, "ok");
+  }
+  renderList();
+}
+
+/** Write current state back into the editor after left-panel changes. */
+function syncToBox() {
+  if (!S.doc) return;
+  setEditorText(JSON.stringify(S.doc, null, 2) + "\n");
+  setJsonStatus(`In sync — ${S.mods.length} mods at ${S.modsPath}.`, "ok");
+  showInvalid(false);
+}
+
+/* ============================================================
+   Rendering the manifest
+   ============================================================ */
+function renderList() {
+  modListEl.innerHTML = "";
+  if (!S.mods) {
+    $("modCount").textContent = "No mods loaded";
+    const note = document.createElement("div");
+    note.className = "empty-note";
+    note.innerHTML = `Paste your <b>Arma Reforger server config</b> — or just the <b>mods array</b> —
+      into the editor on the right. The list updates automatically as you type.<br><br>
+      Drag rows to reorder the load order. Use a row's <b>⟳</b> to pull that mod's full
+      version history from the Workshop, then pick any version from its dropdown.
+      Every change is written straight back into the JSON.`;
+    modListEl.appendChild(note);
+    return;
+  }
+  $("modCount").textContent = `${S.mods.length} mods — ${S.modsPath}`;
+
+  S.mods.forEach((m, i) => {
+    const row = document.createElement("div");
+    row.className = "mod-row";
+    row.draggable = true;
+    row.dataset.index = i;
+
+    const rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = String(i + 1).padStart(3, "0");
+    row.appendChild(rank);
+
+    const grip = document.createElement("span");
+    grip.className = "grip";
+    grip.title = "Drag to reorder";
+    grip.textContent = "⠿";
+    row.appendChild(grip);
+
+    const main = document.createElement("div");
+    main.className = "mod-main";
+    const nm = document.createElement("div");
+    nm.className = "mod-name";
+    const a = document.createElement("a");
+    a.href = "https://reforger.armaplatform.com/workshop/" + encodeURIComponent(modId(m));
+    a.target = "_blank"; a.rel = "noopener";
+    a.textContent = modName(m);
+    a.title = "Open Workshop page";
+    nm.appendChild(a);
+    const idl = document.createElement("div");
+    idl.className = "mod-id";
+    idl.textContent = modId(m);
+    main.appendChild(nm); main.appendChild(idl);
+    row.appendChild(main);
+
+    const vw = document.createElement("div");
+    vw.className = "ver-wrap";
+    const sel = document.createElement("select");
+    sel.title = "Pinned version (fetch history to see all)";
+    populateVersionSelect(sel, m);
+    sel.addEventListener("change", () => {
+      m.version = sel.value;
+      updateChip(chip, m);
+      syncToBox();
+    });
+    vw.appendChild(sel);
+
+    const fetchBtn = document.createElement("button");
+    fetchBtn.className = "btn-mini";
+    fetchBtn.textContent = "⟳";
+    fetchBtn.title = "Fetch version history from the Workshop changelog";
+    fetchBtn.addEventListener("click", () => fetchVersionsFor(m, row));
+    vw.appendChild(fetchBtn);
+
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = "—";
+    updateChip(chip, m);
+    vw.appendChild(chip);
+    row.appendChild(vw);
+
+    const ud = document.createElement("div");
+    ud.className = "updown";
+    const up = document.createElement("button");
+    up.textContent = "▲"; up.title = "Move up";
+    up.disabled = i === 0;
+    up.addEventListener("click", () => moveMod(i, i - 1));
+    const dn = document.createElement("button");
+    dn.textContent = "▼"; dn.title = "Move down";
+    dn.disabled = i === S.mods.length - 1;
+    dn.addEventListener("click", () => moveMod(i, i + 1));
+    ud.appendChild(up); ud.appendChild(dn);
+    row.appendChild(ud);
+
+    attachDrag(row);
+    modListEl.appendChild(row);
+  });
+}
+
+function populateVersionSelect(sel, m) {
+  sel.innerHTML = "";
+  const info = S.versions.get(modId(m));
+  const cur = m.version ?? "";
+  if (info && info.list.length) {
+    let curListed = false;
+    for (const v of info.list) {
+      const opt = document.createElement("option");
+      opt.value = v.version;
+      const date = v.createdAt ? new Date(v.createdAt).toISOString().slice(0, 10) : "";
+      opt.textContent = `${v.version}  ·  GV ${v.gameVersion || "?"}${date ? "  ·  " + date : ""}`;
+      if (v.version === cur) { opt.selected = true; curListed = true; }
+      sel.appendChild(opt);
+    }
+    if (!curListed && cur) {
+      const opt = document.createElement("option");
+      opt.value = cur;
+      opt.textContent = `${cur}  ·  (not on Workshop)`;
+      opt.selected = true;
+      sel.insertBefore(opt, sel.firstChild);
+    }
+  } else {
+    const opt = document.createElement("option");
+    opt.value = cur;
+    opt.textContent = cur || "(no version)";
+    opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function updateChip(chip, m) {
+  const info = S.versions.get(modId(m));
+  chip.classList.remove("ok", "behind", "unlisted", "busy");
+  if (!info) { chip.textContent = "—"; chip.title = "Version history not fetched yet"; return; }
+  const cur = m.version ?? "";
+  const listed = info.list.some(v => v.version === cur);
+  if (cur === info.latest) { chip.textContent = "current"; chip.classList.add("ok"); chip.title = "Pinned to the latest Workshop version"; }
+  else if (listed) { chip.textContent = "behind"; chip.classList.add("behind"); chip.title = `Latest on Workshop is ${info.latest}`; }
+  else { chip.textContent = "unlisted"; chip.classList.add("unlisted"); chip.title = `This version isn't in the Workshop changelog. Latest is ${info.latest}.`; }
+}
+
+function moveMod(from, to) {
+  if (!S.mods || to < 0 || to >= S.mods.length) return;
+  const [m] = S.mods.splice(from, 1);
+  S.mods.splice(to, 0, m);
+  renderList();
+  syncToBox();
+}
+
+/* ---------- drag & drop ---------- */
+let dragIndex = null;
+function attachDrag(row) {
+  row.addEventListener("dragstart", e => {
+    dragIndex = Number(row.dataset.index);
+    row.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(dragIndex));
+  });
+  row.addEventListener("dragend", () => {
+    row.classList.remove("dragging");
+    clearDropMarks();
+    dragIndex = null;
+  });
+  row.addEventListener("dragover", e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const rect = row.getBoundingClientRect();
+    const below = (e.clientY - rect.top) > rect.height / 2;
+    clearDropMarks();
+    row.classList.add(below ? "drop-below" : "drop-above");
+  });
+  row.addEventListener("dragleave", () => row.classList.remove("drop-above", "drop-below"));
+  row.addEventListener("drop", e => {
+    e.preventDefault();
+    const target = Number(row.dataset.index);
+    if (dragIndex === null || dragIndex === target) { clearDropMarks(); return; }
+    const rect = row.getBoundingClientRect();
+    const below = (e.clientY - rect.top) > rect.height / 2;
+    let to = target + (below ? 1 : 0);
+    if (dragIndex < to) to--;
+    moveMod(dragIndex, to);
+  });
+}
+function clearDropMarks() {
+  modListEl.querySelectorAll(".drop-above,.drop-below")
+    .forEach(el => el.classList.remove("drop-above", "drop-below"));
+}
+
+/* ============================================================
+   Workshop fetching (routing handled silently behind the scenes)
+   Changelog pages are Next.js; the data lives in __NEXT_DATA__:
+     props.pageProps.changelogs = { count, rows: [...] }
+   30 rows per page; walk ?page=N until count is covered.
+   ============================================================ */
+const WORKSHOP = "https://reforger.armaplatform.com/workshop/";
+const PER_PAGE = 30;
+const MAX_PAGES = 20;
+
+/* ============================================================
+ *  ONE-TIME SETUP (see DEPLOY.md, ~5 minutes, $0):
+ *  Deploy reforger_relay_worker.js to Cloudflare's free tier,
+ *  then paste your worker URL below. Example:
+ *
+ *    const CUSTOM_RELAY = "https://reforger-relay.yourname.workers.dev/?url=";
+ *
+ *  With it set, every version lookup goes through YOUR relay first
+ *  (fast, cached, reliable). The public relays below remain as
+ *  automatic fallback only. Leave it "" to run on public relays.
+ * ============================================================ */
+const CUSTOM_RELAY = "";
+
+const FROM_LOCAL_FILE = location.protocol === "file:";
+
+// Each relay: make(url) -> request URL; unwrap(text) -> page HTML
+const RELAYS = [
+  ...(CUSTOM_RELAY ? [{
+    make: u => CUSTOM_RELAY + encodeURIComponent(u),
+    unwrap: t => t
+  }] : []),
+  { // allorigins JSON envelope — the steadiest public relay in testing
+    make: u => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
+    unwrap: t => { try { return JSON.parse(t).contents || ""; } catch { return ""; } }
+  },
+  {
+    make: u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+    unwrap: t => t
+  },
+  {
+    make: u => "https://test.cors.workers.dev/?" + u,
+    unwrap: t => t
+  },
+  {
+    make: u => "https://api.codetabs.com/v1/proxy?quest=" + u,
+    unwrap: t => t
+  }
+];
+let preferredRelay = -1; // remember whichever worked, use it first next time
+
+async function fetchWithTimeout(url, ms) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, { redirect: "follow", signal: ctl.signal }); }
+  finally { clearTimeout(timer); }
+}
+
+async function fetchHtml(url) {
+  const order = preferredRelay >= 0
+    ? [RELAYS[preferredRelay], ...RELAYS.filter((_, i) => i !== preferredRelay)]
+    : RELAYS.slice();
+  let lastErr = null;
+  for (const relay of order) {
+    try {
+      const res = await fetchWithTimeout(relay.make(url), 12000);
+      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
+      const html = relay.unwrap(await res.text());
+      if (html.includes("__NEXT_DATA__")) {
+        preferredRelay = RELAYS.indexOf(relay);
+        return html;
+      }
+      lastErr = new Error("Unexpected response from relay");
+    } catch (e) {
+      lastErr = e.name === "AbortError" ? new Error("Timed out") : e;
+    }
+  }
+  if (FROM_LOCAL_FILE) {
+    throw new Error("The version relays reject requests from pages opened as local files (file://). " +
+      "Serve this page over http(s) instead — e.g. run `python -m http.server` in its folder " +
+      "and open http://localhost:8000/, or host it online.");
+  }
+  throw new Error("Couldn't reach the Workshop right now" +
+    (lastErr ? ` (${lastErr.message})` : "") + ". Try again in a minute.");
+}
+
+function extractNextData(html) {
+  const m = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error("__NEXT_DATA__ script tag not found");
+  return JSON.parse(m[1]);
+}
+
+async function fetchAllVersions(id) {
+  const list = [];
+  let count = Infinity;
+  for (let page = 1; page <= MAX_PAGES && (page - 1) * PER_PAGE < count; page++) {
+    const url = `${WORKSHOP}${id}/changelog${page > 1 ? "?page=" + page : ""}`;
+    const html = await fetchHtml(url);
+    const data = extractNextData(html);
+    const cl = data?.props?.pageProps?.changelogs;
+    if (!cl || !Array.isArray(cl.rows)) throw new Error("Unexpected page structure");
+    count = cl.count ?? cl.rows.length;
+    for (const r of cl.rows) {
+      list.push({ version: r.version, gameVersion: r.gameVersion, createdAt: r.createdAt });
+    }
+    if (cl.rows.length < PER_PAGE) break;
+  }
+  return { list, latest: list.length ? list[0].version : null, count };
+}
+
+async function fetchVersionsFor(m, row) {
+  const id = modId(m);
+  if (!id) { log(`Skipped a mod with no modId ("${modName(m)}")`, "err"); return; }
+  const chip = row?.querySelector(".chip");
+  const btn = row?.querySelector(".ver-wrap .btn-mini");
+  if (chip) { chip.classList.remove("ok","behind","unlisted"); chip.classList.add("busy"); chip.textContent = "…"; }
+  if (btn) btn.disabled = true;
+  try {
+    const info = await fetchAllVersions(id);
+    S.versions.set(id, info);
+    log(`${modName(m)}: ${info.list.length} versions, latest ${info.latest}`, "ok");
+    if (row) {
+      const sel = row.querySelector("select");
+      populateVersionSelect(sel, m);
+      updateChip(chip, m);
+    }
+  } catch (e) {
+    log(`${modName(m)}: ${e.message}`, "err");
+    if (chip) { chip.classList.remove("busy"); chip.textContent = "error"; chip.title = e.message; }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (chip) chip.classList.remove("busy");
+  }
+}
+
+async function fetchAll() {
+  if (!S.mods || !S.mods.length) { log("Paste a config with a mods array first.", "err"); return; }
+  const btn = $("btnFetchAll");
+  btn.disabled = true;
+  const rows = [...modListEl.querySelectorAll(".mod-row")];
+  log(`Fetching version histories for ${S.mods.length} mods…`);
+  const CONCURRENCY = 3;
+  let next = 0, failures = 0;
+  async function worker() {
+    while (next < S.mods.length) {
+      const i = next++;
+      btn.textContent = `Fetching ${Math.min(next, S.mods.length)}/${S.mods.length}…`;
+      try { await fetchVersionsFor(S.mods[i], rows[i]); }
+      catch { failures++; }
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  btn.disabled = false;
+  btn.textContent = "Fetch all versions";
+  log(`Done. ${S.versions.size} mods have version data.${failures ? ` ${failures} failed.` : ""}`,
+      failures ? "err" : "ok");
+}
+
+/* ============================================================
+   Toolbar actions
+   ============================================================ */
+$("btnFetchAll").addEventListener("click", fetchAll);
+$("btnSortName").addEventListener("click", () => {
+  if (!S.mods) return;
+  S.mods.sort((a, b) => modName(a).localeCompare(modName(b), undefined, { sensitivity: "base" }));
+  renderList(); syncToBox();
+});
+$("btnReverse").addEventListener("click", () => {
+  if (!S.mods) return;
+  S.mods.reverse();
+  renderList(); syncToBox();
+});
+$("btnFormat").addEventListener("click", () => {
+  if (S.doc) { syncToBox(); setJsonStatus(`Formatted — ${S.mods ? S.mods.length + " mods at " + S.modsPath : "no mods array"}.`, "ok"); }
+  else parseNow();
+});
+$("btnCopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(jsonBox.value); log("JSON copied to clipboard.", "ok"); }
+  catch { jsonBox.select(); document.execCommand("copy"); log("JSON copied (fallback path).", "ok"); }
+});
+$("btnDownload").addEventListener("click", () => {
+  const blob = new Blob([jsonBox.value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "server_settings.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+refreshEditorVisuals(0);
+if (FROM_LOCAL_FILE) {
+  log("Heads up: this page is open as a local file (file://). Version fetching needs the page " +
+      "served over http(s) — run `python -m http.server` in this folder and open http://localhost:8000/, " +
+      "or host it online. Everything else works fine locally.", "err");
+}
+</script>
+
+<noscript>
+  <p style="padding:16px;font-family:sans-serif">
+    This is a free browser-based mod load order and Workshop version manager for
+    Arma Reforger dedicated server configs. It requires JavaScript — everything
+    runs client-side in your browser; nothing is uploaded anywhere.
+  </p>
+</noscript>
+</body>
+</html>
