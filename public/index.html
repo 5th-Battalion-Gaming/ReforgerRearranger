@@ -999,12 +999,17 @@ async function fetchWithTimeout(url, ms, fresh) {
   finally { clearTimeout(timer); }
 }
 
+const CACHE_WINDOW_MS = 5 * 60 * 1000;
+
 async function fetchHtml(url, fresh) {
-  if (fresh) {
-    // Changing the target URL defeats the edge cache and any relay-side
-    // cache (both key on URL); no-store below defeats the browser cache.
-    url += (url.includes("?") ? "&" : "?") + "fresh=" + Date.now();
-  }
+  /* Every target URL carries a time-bucket param. Within a 5-minute
+   * window all requests share every cache (browser, edge, relay-side);
+   * when the window rolls over the URL changes, so ALL caches go dirty
+   * at once — max staleness is a hard 5 minutes everywhere.
+   * Manual refresh (fresh=true) uses the exact timestamp instead,
+   * bypassing every cache immediately. */
+  const bucket = fresh ? Date.now() : Math.floor(Date.now() / CACHE_WINDOW_MS);
+  url += (url.includes("?") ? "&" : "?") + "t=" + bucket;
   const order = preferredRelay >= 0
     ? [RELAYS[preferredRelay], ...RELAYS.filter((_, i) => i !== preferredRelay)]
     : RELAYS.slice();
