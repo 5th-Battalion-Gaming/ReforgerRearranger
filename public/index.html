@@ -191,8 +191,13 @@
   .mod-id { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
 
   .ver-wrap { display: flex; align-items: center; gap: 6px; }
-  .ver-wrap select { font-family: var(--mono); font-size: 12px; max-width: 210px; }
+  .ver-wrap select { font-family: var(--mono); font-size: 12px; max-width: 290px; }
   .btn-mini { padding: 4px 8px; font-size: 12px; }
+  .mod-size {
+    font-family: var(--mono); font-size: 11.5px; color: var(--khaki-deep);
+    min-width: 64px; text-align: right; white-space: nowrap; user-select: none;
+  }
+  .mod-size.unknown { color: var(--ink-dim); }
   .chip {
     font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
     padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line);
@@ -299,6 +304,7 @@
       <span id="modCount">No mods loaded</span>
       <span class="spacer"></span>
       <button id="btnSortName" class="btn-mini" title="Sort mods A→Z by name">Sort A–Z</button>
+      <button id="btnSortSize" class="btn-mini" title="Sort by download size, largest first (click again for smallest first). Needs version data — use Fetch all versions.">Sort size ▼</button>
       <button id="btnReverse" class="btn-mini" title="Reverse the current order">Reverse</button>
     </div>
     <div id="invalidBanner" role="alert">Invalid JSON format</div>
@@ -673,6 +679,61 @@ function modId(m)   { return m.modId ?? m.modID ?? ""; }
 function modName(m) { return m.name || modId(m) || "(unnamed)"; }
 
 /* ============================================================
+   Download sizes
+   ============================================================ */
+const SIZE_UNITS = ["B", "KB", "MB", "GB", "TB"];
+function formatSize(bytes) {
+  if (typeof bytes !== "number" || !isFinite(bytes) || bytes < 0) return "";
+  let v = bytes, u = 0;
+  while (v >= 1024 && u < SIZE_UNITS.length - 1) { v /= 1024; u++; }
+  if (u === 0) return v + " B";
+  return (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)) + " " + SIZE_UNITS[u];
+}
+
+/** Size of the version this mod actually resolves to, or null if unknown.
+ *  No version pinned means the server takes the latest, so use list[0]. */
+function sizeOf(m) {
+  const info = S.versions.get(modId(m));
+  if (!info || !info.list.length) return null;
+  const cur = m.version ?? "";
+  const hit = cur ? info.list.find(v => v.version === cur) : info.list[0];
+  return hit && typeof hit.size === "number" ? hit.size : null;
+}
+
+function updateSize(el, m) {
+  const bytes = sizeOf(m);
+  if (bytes === null) {
+    el.textContent = "—";
+    el.classList.add("unknown");
+    el.title = S.versions.has(modId(m))
+      ? "No size published for this version"
+      : "Size unknown — fetch this mod's version history";
+    return;
+  }
+  el.classList.remove("unknown");
+  el.textContent = formatSize(bytes);
+  el.title = `${bytes.toLocaleString()} bytes`;
+}
+
+/** Mod count + combined download size for the toolbar. */
+function updateCount() {
+  const el = $("modCount");
+  if (!S.mods) { el.textContent = "No mods loaded"; el.title = ""; return; }
+  let sum = 0, known = 0, unknown = 0;
+  for (const m of S.mods) {
+    const b = sizeOf(m);
+    if (b === null) unknown++; else { sum += b; known++; }
+  }
+  let txt = `${S.mods.length} mods — ${S.modsPath}`;
+  // "+" flags that some mods aren't counted yet, so the total is a floor
+  if (known) txt += ` — ${formatSize(sum)}${unknown ? "+" : ""}`;
+  el.textContent = txt;
+  el.title = unknown
+    ? `${known} of ${S.mods.length} mods sized. Use "Fetch all versions" for the full total.`
+    : (known ? `${sum.toLocaleString()} bytes total` : "");
+}
+
+/* ============================================================
    Auto-parse on edit (debounced)
    ============================================================ */
 let debounceTimer = null;
@@ -746,7 +807,7 @@ function renderList() {
     modListEl.appendChild(note);
     return;
   }
-  $("modCount").textContent = `${S.mods.length} mods — ${S.modsPath}`;
+  updateCount();
 
   S.mods.forEach((m, i) => {
     const row = document.createElement("div");
@@ -789,9 +850,16 @@ function renderList() {
     sel.addEventListener("change", () => {
       m.version = sel.value;
       updateChip(chip, m);
+      updateSize(size, m);
+      updateCount();
       syncToBox();
     });
     vw.appendChild(sel);
+
+    const size = document.createElement("span");
+    size.className = "mod-size";
+    updateSize(size, m);
+    vw.appendChild(size);
 
     const fetchBtn = document.createElement("button");
     fetchBtn.className = "btn-mini";
@@ -810,6 +878,8 @@ function renderList() {
       m.version = info.latest;
       populateVersionSelect(sel, m);
       updateChip(chip, m);
+      updateSize(size, m);
+      updateCount();
       syncToBox();
       log(`${modName(m)} → ${info.latest}`, "ok");
     });
@@ -848,7 +918,8 @@ function populateVersionSelect(sel, m) {
         const d = new Date(v.createdAt);
         if (!isNaN(d)) date = d.toISOString().slice(0, 10);
       }
-      opt.textContent = `${v.version}  ·  GV ${v.gameVersion || "?"}${date ? "  ·  " + date : ""}`;
+      const sz = formatSize(v.size);
+      opt.textContent = `${v.version}  ·  GV ${v.gameVersion || "?"}${sz ? "  ·  " + sz : ""}${date ? "  ·  " + date : ""}`;
       if (v.version === cur) { opt.selected = true; curListed = true; }
       sel.appendChild(opt);
     }
@@ -1054,7 +1125,13 @@ async function fetchAllVersions(id, fresh) {
     if (!cl || !Array.isArray(cl.rows)) throw new Error("Unexpected page structure");
     count = cl.count ?? cl.rows.length;
     for (const r of cl.rows) {
-      list.push({ version: r.version, gameVersion: r.gameVersion, createdAt: r.createdAt });
+      list.push({
+        version: r.version,
+        gameVersion: r.gameVersion,
+        createdAt: r.createdAt,
+        // full download size of this version, in bytes
+        size: typeof r.totalFileSize === "number" ? r.totalFileSize : null
+      });
     }
     if (cl.rows.length < PER_PAGE) break;
   }
@@ -1071,12 +1148,16 @@ async function fetchVersionsFor(m, row, fresh = false) {
   try {
     const info = await fetchAllVersions(id, fresh);
     S.versions.set(id, info);
-    log(`${modName(m)}: ${info.list.length} versions, latest ${info.latest}${fresh ? " (fresh, caches bypassed)" : ""}`, "ok");
+    const sz = formatSize(sizeOf(m));
+    log(`${modName(m)}: ${info.list.length} versions, latest ${info.latest}${sz ? `, ${sz}` : ""}${fresh ? " (fresh, caches bypassed)" : ""}`, "ok");
     if (row) {
       const sel = row.querySelector("select");
       populateVersionSelect(sel, m);
       updateChip(chip, m);
+      const size = row.querySelector(".mod-size");
+      if (size) updateSize(size, m);
     }
+    updateCount();
   } catch (e) {
     log(`${modName(m)}: ${e.message}`, "err");
     if (chip) { chip.classList.remove("busy"); chip.textContent = "error"; chip.title = e.message; }
@@ -1131,6 +1212,28 @@ $("btnAllLatest").addEventListener("click", () => {
 $("btnSortName").addEventListener("click", () => {
   if (!S.mods) return;
   S.mods.sort((a, b) => modName(a).localeCompare(modName(b), undefined, { sensitivity: "base" }));
+  renderList(); syncToBox();
+});
+let sizeSortDesc = true; // the arrow on the button is what the NEXT click does
+$("btnSortSize").addEventListener("click", () => {
+  if (!S.mods) return;
+  if (!S.mods.some(m => sizeOf(m) !== null)) {
+    log('No size data yet — press "Fetch all versions" first.', "err");
+    return;
+  }
+  const dir = sizeSortDesc ? -1 : 1;
+  S.mods.sort((a, b) => {
+    const sa = sizeOf(a), sb = sizeOf(b);
+    if (sa === null && sb === null) return 0;
+    if (sa === null) return 1;   // unsized mods sink to the bottom either way
+    if (sb === null) return -1;
+    return (sa - sb) * dir;
+  });
+  log(`Sorted by size, ${sizeSortDesc ? "largest" : "smallest"} first.`, "ok");
+  sizeSortDesc = !sizeSortDesc;
+  const btn = $("btnSortSize");
+  btn.textContent = `Sort size ${sizeSortDesc ? "▼" : "▲"}`;
+  btn.title = `Sort by download size, ${sizeSortDesc ? "largest" : "smallest"} first (click again to reverse).`;
   renderList(); syncToBox();
 });
 $("btnReverse").addEventListener("click", () => {
