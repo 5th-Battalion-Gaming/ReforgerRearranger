@@ -1,0 +1,23 @@
+# Security headers for the static app (Cloudflare Workers/Pages static assets).
+# Applies to files served from ./public only — the relay worker sets its own
+# headers in reforger_relay_worker.js.
+#
+# About the CSP: the app is one self-contained file with an inline <script>
+# and inline <style>, so script-src/style-src have to allow 'unsafe-inline'
+# (hashes would silently break the page on every edit). The directive doing
+# the real work here is connect-src: it pins outbound requests to the relays
+# the app actually uses, so a config pasted into the editor — admin and RCON
+# passwords included — can't be shipped to an attacker's server even if some
+# future edit reintroduces an injection bug. frame-ancestors 'none' blocks
+# clickjacking, and base-uri/form-action 'none' close the usual bypasses.
+#
+# If you point CUSTOM_RELAY at your own separately-hosted worker, add its
+# origin to connect-src below or the fetch will be blocked.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.allorigins.win https://test.cors.workers.dev https://api.codetabs.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()
